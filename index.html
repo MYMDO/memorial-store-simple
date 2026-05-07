@@ -43,6 +43,13 @@
   </footer>
 
   <script src="products.js"></script>
+  <script>
+    // Load products from localStorage if exists (synced with admin)
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) {
+      products = JSON.parse(savedProducts);
+    }
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
