@@ -2,8 +2,8 @@
 // Get these from: https://supabase.com/dashboard/project/jxsvcodctysphexpawnu/settings/api
 
 const SUPABASE_URL = 'https://jxsvcodctysphexpawnu.supabase.co';
-// anon/public key from "Project API keys" section (starts with "eyJ...")
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsImJlbmVyIjoic3VwYWJhc2UiLCJyb2xlIjoiYW5vbiIsImV4cCI6MTk4MzgxMjk5Nn0.XXXXX'; 
+// anon/public key from "Project API keys" section
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4c3Zjb2RjdHlzcGhleHBhd24iLCJyb2xlIjoic3Vic2NyaWJlciIsImlhdCI6MTc0NzgxNDUzMSwiZXhwIjoyMDYzMzkxMzMxfQ.Yst95PKxXiaGRw-9G53SF7AO-eGjqDuCUl6FHC1Xvcc'; 
 
 // CDN version creates window.supabase - use it directly
 // Initialize client and store in a different global variable
