@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Галерея Пам'ятників</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">🪦 Галерея Пам'ятників</h1>
+      <p class="subtitle">Вічна пам'ять у кожному камені</p>
+    </div>
+  </header>
+
+  <!-- Filters -->
+  <section class="filters">
+    <div class="container">
+      <input type="text" id="search" placeholder="Пошук пам'ятників..." class="search-input">
+      <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Всі</button>
+        <button class="filter-btn" data-filter="granite">Гранітні</button>
+        <button class="filter-btn" data-filter="marble">Мармурові</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Products Grid -->
+  <main class="container">
+    <div id="products-grid" class="products-grid">
+      <!-- Products will be loaded here by JS -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 Галерея Пам'ятників. Всі права захищені.</p>
+      <p class="demo-note">Демо-версія (статичні дані)</p>
+    </div>
+  </footer>
+
+  <script src="products.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
