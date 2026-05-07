@@ -101,7 +101,7 @@
       list.innerHTML = '';
       
       try {
-        const { data, error } = await supabase
+        const { data, error } = await window.sbClient
           .from('products')
           .select('*')
           .order('created_at', { ascending: false });
@@ -161,7 +161,7 @@
       try {
         if (editId) {
           // Update existing
-          const { error } = await supabase
+          const { data, error } = await window.sbClient
             .from('products')
             .update({ name, category, price, emoji })
             .eq('id', editId);
@@ -170,7 +170,7 @@
           cancelEdit();
         } else {
           // Add new
-          const { error } = await supabase
+          const { data, error } = await window.sbClient
             .from('products')
             .insert([{ name, category, price, emoji }]);
           
@@ -219,7 +219,7 @@
       if (!confirm('Ви впевнені, що хочете видалити цей товар?')) return;
       
       try {
-        const { error } = await supabase
+        const { data, error } = await window.sbClient
           .from('products')
           .delete()
           .eq('id', id);
@@ -235,7 +235,7 @@
 
     // Auth functions (optional)
     async function signIn() {
-      const { error } = await supabase.auth.signInWithOtp({
+      const { data, error } = await window.sbClient.auth.signInWithOtp({
         email: prompt('Введіть ваш email:'),
       });
       if (error) alert('Помилка входу!');

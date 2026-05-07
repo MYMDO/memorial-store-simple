@@ -6,7 +6,7 @@ async function loadProducts() {
   const grid = document.getElementById('products-grid');
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await window.sbClient
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
@@ -21,12 +21,7 @@ async function loadProducts() {
     renderProducts(products);
   } catch (err) {
     console.error('Error:', err);
-    // Fallback to localStorage if Supabase fails
-    const saved = localStorage.getItem('products');
-    if (saved) {
-      products = JSON.parse(saved);
-      renderProducts(products);
-    }
+    grid.innerHTML = '<div style="text-align: center; padding: 40px; grid-column: 1/-1;">Помилка підключення</div>';
   }
 }
 
