@@ -1,7 +1,11 @@
 // Supabase configuration
-// REPLACE these with your own values from https://supabase.com/dashboard
-const SUPABASE_URL =  'https://jxsvcodctysphexpawnu.supabase.co/rest/v1/'; //'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_9exTLxabIh3PUjUMLdwDRg_x9EE5VrK'; //'YOUR_ANON_KEY'; // public anon key
+// Get these from: https://supabase.com/dashboard/project/jxsvcodctysphexpawnu/settings/api
 
-// Initialize Supabase
+const SUPABASE_URL = 'https://jxsvcodctysphexpawnu.supabase.co';
+// anon/public key from "Project API keys" section (starts with "eyJ...")
+const SUPABASE_KEY = 'PASTE_YOUR_ANON_KEY_HERE'; 
+
+// Initialize Supabase (CDN version - available as window.supabase)
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+console.log('Supabase initialized:', supabase ? 'SUCCESS' : 'FAILED');
