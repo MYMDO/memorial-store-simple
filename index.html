@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Галерея Пам'ятників</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
 </head>
 <body>
   <!-- Header -->
@@ -30,7 +33,10 @@
   <!-- Products Grid -->
   <main class="container">
     <div id="products-grid" class="products-grid">
-      <!-- Products will be loaded here by JS -->
+      <!-- Loading state -->
+      <div style="text-align: center; padding: 40px; grid-column: 1/-1;">
+        Завантаження...
+      </div>
     </div>
   </main>
 
@@ -38,18 +44,10 @@
   <footer class="footer">
     <div class="container">
       <p>© 2026 Галерея Пам'ятників. Всі права захищені.</p>
-      <p class="demo-note">Демо-версія (статичні дані)</p>
+      <p class="demo-note">База даних: Supabase (реальний час)</p>
     </div>
   </footer>
 
-  <script src="products.js"></script>
-  <script>
-    // Load products from localStorage if exists (synced with admin)
-    const savedProducts = localStorage.getItem('products');
-    if (savedProducts) {
-      products = JSON.parse(savedProducts);
-    }
-  </script>
   <script src="script.js"></script>
 </body>
 </html>

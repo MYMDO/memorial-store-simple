@@ -1,15 +1,53 @@
+// Products will be loaded from Supabase
+let products = [];
+
+// Load products from Supabase
+async function loadProducts() {
+  const grid = document.getElementById('products-grid');
+  
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading products:', error);
+      grid.innerHTML = '<div style="text-align: center; padding: 40px; grid-column: 1/-1;">Помилка завантаження</div>';
+      return;
+    }
+    
+    products = data || [];
+    renderProducts(products);
+  } catch (err) {
+    console.error('Error:', err);
+    // Fallback to localStorage if Supabase fails
+    const saved = localStorage.getItem('products');
+    if (saved) {
+      products = JSON.parse(saved);
+      renderProducts(products);
+    }
+  }
+}
+
 // Render products
 function renderProducts(filteredProducts) {
   const grid = document.getElementById('products-grid');
+  
+  if (filteredProducts.length === 0) {
+    grid.innerHTML = '<div style="text-align: center; padding: 40px; grid-column: 1/-1;">Товарів не знайдено</div>';
+    return;
+  }
+  
   grid.innerHTML = '';
-
+  
   filteredProducts.forEach(product => {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.dataset.category = product.category;
     
     card.innerHTML = `
-      <div class="product-image">${product.emoji}</div>
+      <div class="product-image">${product.emoji || '🪦'}</div>
       <div class="product-info">
         <h3 class="product-name">${product.name}</h3>
         <p class="product-category">${product.category === 'granite' ? 'Гранітні' : 'Мармурові'}</p>
@@ -21,8 +59,8 @@ function renderProducts(filteredProducts) {
   });
 }
 
-// Initial render
-renderProducts(products);
+// Initial load
+loadProducts();
 
 // Filter buttons
 const filterButtons = document.querySelectorAll('.filter-btn');

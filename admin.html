@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Адмін - Галерея Пам'ятників</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <style>
     .admin-container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
     .product-form { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -20,17 +22,25 @@
     .product-item:last-child { border-bottom: none; }
     .actions { display: flex; gap: 10px; }
     .empty-state { text-align: center; padding: 40px; color: #666; }
+    .loading { text-align: center; padding: 40px; }
+    .auth-section { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; }
   </style>
 </head>
 <body>
   <header class="header">
     <div class="container">
       <h1>🛠️ Адмін-панель</h1>
-      <p class="subtitle">Редагування каталогу пам'ятників</p>
+      <p class="subtitle">Редагування каталогу пам'ятників (Supabase)</p>
     </div>
   </header>
 
   <main class="admin-container">
+    <!-- Auth Section (optional - for production use) -->
+    <div class="auth-section" id="auth-section" style="display: none;">
+      <p>Для редагування увійдіть через Supabase</p>
+      <button class="btn btn-primary" onclick="signIn()">Увійти</button>
+    </div>
+
     <!-- Add/Edit Form -->
     <div class="product-form">
       <h2 id="form-title">Додати новий пам'ятник</h2>
@@ -70,57 +80,64 @@
     <!-- Products List -->
     <div class="products-list">
       <h2>Список товарів (<span id="count">0</span>)</h2>
+      <div id="loading" class="loading">Завантаження...</div>
       <div id="products-list"></div>
       <div id="empty-state" class="empty-state" style="display: none;">
         <p>Товарів поки що немає. Додайте перший!</p>
       </div>
     </div>
-
-    <!-- Export/Import -->
-    <div style="margin-top: 20px; text-align: center;">
-      <button class="btn btn-success" onclick="exportJSON()">📥 Експортувати JSON</button>
-      <button class="btn" style="background: #17a2b8; color: #fff; margin-left: 10px;" onclick="document.getElementById('import-file').click()">📤 Імпортувати JSON</button>
-      <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importJSON(event)">
-    </div>
   </main>
 
-  <script src="products.js"></script>
   <script>
     let editId = null;
 
-    // Load products from localStorage or use default
-    function loadProducts() {
-      const saved = localStorage.getItem('products');
-      if (saved) {
-        products = JSON.parse(saved);
+    // Load products from Supabase
+    async function loadProducts() {
+      const list = document.getElementById('products-list');
+      const loading = document.getElementById('loading');
+      const emptyState = document.getElementById('empty-state');
+      
+      loading.style.display = 'block';
+      list.innerHTML = '';
+      
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        loading.style.display = 'none';
+        
+        if (error) {
+          console.error('Error:', error);
+          alert('Помилка завантаження!');
+          return;
+        }
+        
+        products = data || [];
+        document.getElementById('count').textContent = products.length;
+        
+        if (products.length === 0) {
+          emptyState.style.display = 'block';
+          return;
+        }
+        
+        emptyState.style.display = 'none';
+        renderList();
+      } catch (err) {
+        loading.style.display = 'none';
+        console.error('Error:', err);
+        alert('Помилка підключення до бази даних!');
       }
-      renderList();
-    }
-
-    // Save products to localStorage
-    function saveProducts() {
-      localStorage.setItem('products', JSON.stringify(products));
     }
 
     // Render products list
     function renderList() {
       const list = document.getElementById('products-list');
-      const emptyState = document.getElementById('empty-state');
-      const count = document.getElementById('count');
-      
-      count.textContent = products.length;
-      
-      if (products.length === 0) {
-        list.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-      }
-      
-      emptyState.style.display = 'none';
       list.innerHTML = products.map(p => `
         <div class="product-item">
           <div>
-            <strong>${p.emoji} ${p.name}</strong><br>
+            <strong>${p.emoji || '🪦'} ${p.name}</strong><br>
             <small>${p.category === 'granite' ? 'Гранітні' : 'Мармурові'} • ${p.price}</small>
           </div>
           <div class="actions">
@@ -132,7 +149,7 @@
     }
 
     // Add or update product
-    document.getElementById('product-form').addEventListener('submit', (e) => {
+    document.getElementById('product-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const id = document.getElementById('product-id').value;
@@ -141,27 +158,37 @@
       const price = document.getElementById('price').value;
       const emoji = document.getElementById('emoji').value;
       
-      if (editId) {
-        // Update existing
-        const index = products.findIndex(p => p.id == editId);
-        if (index !== -1) {
-          products[index] = { id: parseInt(editId), name, category, price, emoji };
+      try {
+        if (editId) {
+          // Update existing
+          const { error } = await supabase
+            .from('products')
+            .update({ name, category, price, emoji })
+            .eq('id', editId);
+          
+          if (error) throw error;
+          cancelEdit();
+        } else {
+          // Add new
+          const { error } = await supabase
+            .from('products')
+            .insert([{ name, category, price, emoji }]);
+          
+          if (error) throw error;
         }
-        cancelEdit();
-      } else {
-        // Add new
-        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
-        products.push({ id: newId, name, category, price, emoji });
+        
+        // Reload products
+        await loadProducts();
+        document.getElementById('product-form').reset();
+        document.getElementById('emoji').value = '🪦';
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Помилка збереження!');
       }
-      
-      saveProducts();
-      renderList();
-      document.getElementById('product-form').reset();
-      document.getElementById('emoji').value = '🪦';
     });
 
     // Edit product
-    function editProduct(id) {
+    async function editProduct(id) {
       const product = products.find(p => p.id == id);
       if (!product) return;
       
@@ -170,9 +197,9 @@
       document.getElementById('name').value = product.name;
       document.getElementById('category').value = product.category;
       document.getElementById('price').value = product.price;
-      document.getElementById('emoji').value = product.emoji;
+      document.getElementById('emoji').value = product.emoji || '🪦';
       
-      document.getElementById('form-title').textContent = 'Редагувати пам\'ятник';
+      document.getElementById('form-title').textContent = "Редагувати пам'ятник";
       document.getElementById('submit-btn').textContent = 'Оновити';
       document.getElementById('cancel-btn').style.display = 'inline-block';
     }
@@ -182,52 +209,41 @@
       editId = null;
       document.getElementById('product-form').reset();
       document.getElementById('emoji').value = '🪦';
-      document.getElementById('form-title').textContent = 'Додати новий пам\'ятник';
+      document.getElementById('form-title').textContent = "Додати новий пам'ятник";
       document.getElementById('submit-btn').textContent = 'Додати';
       document.getElementById('cancel-btn').style.display = 'none';
     }
 
     // Delete product
-    function deleteProduct(id) {
+    async function deleteProduct(id) {
       if (!confirm('Ви впевнені, що хочете видалити цей товар?')) return;
       
-      products = products.filter(p => p.id != id);
-      saveProducts();
-      renderList();
+      try {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+        
+        await loadProducts();
+      } catch (err) {
+        console.error('Error:', err);
+        alert('Помилка видалення!');
+      }
     }
 
-    // Export to JSON file
-    function exportJSON() {
-      const dataStr = JSON.stringify(products, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'products.json';
-      link.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // Import from JSON file
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          products = JSON.parse(e.target.result);
-          saveProducts();
-          renderList();
-          alert('Дані успішно імпортовано!');
-        } catch (err) {
-          alert('Помилка при читанні файлу!');
-        }
-      };
-      reader.readAsText(file);
+    // Auth functions (optional)
+    async function signIn() {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: prompt('Введіть ваш email:'),
+      });
+      if (error) alert('Помилка входу!');
+      else alert('Перевірте email для підтвердження!');
     }
 
     // Load on start
+    let products = [];
     loadProducts();
   </script>
 </body>
